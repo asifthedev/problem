@@ -60,7 +60,7 @@ def home():
             
             url_storage[short_code] = long_url
             
-            short_url = f"https://problem-7kwxyny1o-asifthedevs-projects.vercel.app/{short_code}"
+            short_url = f"https://asifshort-itman.vercel.app/{short_code}"
         except Exception as e:
             logging.error(f"Error in home route: {str(e)}")
             error = "An error occurred while shortening the URL. Please try again."
