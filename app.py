@@ -3,14 +3,17 @@ import string
 import random
 import os
 from dotenv import load_dotenv
+import logging
 
 app = Flask(__name__)
 
 load_dotenv()
 
-# Use Vercel KV for storage
-from vercel_kv import VercelKV
-kv = VercelKV()
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+
+# In-memory storage (Note: This will reset on each function invocation)
+url_storage = {}
 
 # Generate a random short code
 def generate_short_code(length=6):
@@ -33,6 +36,9 @@ HTML_TEMPLATE = '''
     {% if short_url %}
     <p>Shortened URL: <a href="{{ short_url }}">{{ short_url }}</a></p>
     {% endif %}
+    {% if error %}
+    <p style="color: red;">Error: {{ error }}</p>
+    {% endif %}
     <h2>Update Existing Short Link</h2>
     <form method="POST" action="/update">
         <input type="text" name="short_code" placeholder="Enter short code" required>
@@ -45,32 +51,50 @@ HTML_TEMPLATE = '''
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    error = None
+    short_url = None
     if request.method == 'POST':
-        long_url = request.form['url']
-        short_code = generate_short_code()
-        
-        kv.set(short_code, long_url)
-        
-        short_url = request.url_root + short_code
-        return render_template_string(HTML_TEMPLATE, short_url=short_url)
-    return render_template_string(HTML_TEMPLATE)
+        try:
+            long_url = request.form['url']
+            short_code = generate_short_code()
+            
+            url_storage[short_code] = long_url
+            
+            short_url = f"https://problem-diq0gifp9-asifthedevs-projects.vercel.app/{short_code}"
+        except Exception as e:
+            logging.error(f"Error in home route: {str(e)}")
+            error = "An error occurred while shortening the URL. Please try again."
+    
+    return render_template_string(HTML_TEMPLATE, short_url=short_url, error=error)
 
 @app.route('/<short_code>')
 def redirect_to_url(short_code):
-    long_url = kv.get(short_code)
-    
-    if long_url:
-        return redirect(long_url)
-    else:
-        return "Short link not found", 404
+    try:
+        long_url = url_storage.get(short_code)
+        
+        if long_url:
+            return redirect(long_url)
+        else:
+            return "Short link not found", 404
+    except Exception as e:
+        logging.error(f"Error in redirect route: {str(e)}")
+        return "An error occurred", 500
 
 @app.route('/update', methods=['POST'])
 def update_link():
-    short_code = request.form['short_code']
-    new_url = request.form['new_url']
-    
-    if kv.exists(short_code):
-        kv.set(short_code, new_url)
-        return f"Short link {short_code} updated successfully!", 200
-    else:
-        return "Short link not found", 404
+    try:
+        short_code = request.form['short_code']
+        new_url = request.form['new_url']
+        
+        if short_code in url_storage:
+            url_storage[short_code] = new_url
+            return f"Short link {short_code} updated successfully!", 200
+        else:
+            return "Short link not found", 404
+    except Exception as e:
+        logging.error(f"Error in update route: {str(e)}")
+        return "An error occurred", 500
+
+@app.route('/debug')
+def debug():
+    return "Debug route is working!", 200
