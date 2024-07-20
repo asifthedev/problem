@@ -20,31 +20,104 @@ def generate_short_code(length=6):
     chars = string.ascii_letters + string.digits
     return ''.join(random.choice(chars) for _ in range(length))
 
-# HTML template for the main page
+# HTML template for the main page with modern CSS
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>URL Shortener</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #f0f0f0;
+            --text: #333;
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --accent: #e74c3c;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--background);
+            background-image: radial-gradient(circle, #222222 1px, var(--background) 1px);
+            background-size: 20px 20px;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1, h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        input[type="submit"] {
+            background-color: var(--secondary);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        input[type="submit"]:hover {
+            background-color: #27ae60;
+        }
+        .result {
+            background-color: #e8f4fd;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .error {
+            color: var(--accent);
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-    <h1>URL Shortener</h1>
-    <form method="POST">
-        <input type="url" name="url" placeholder="Enter URL to shorten" required>
-        <input type="submit" value="Shorten">
-    </form>
-    {% if short_url %}
-    <p>Shortened URL: <a href="{{ short_url }}">{{ short_url }}</a></p>
-    {% endif %}
-    {% if error %}
-    <p style="color: red;">Error: {{ error }}</p>
-    {% endif %}
-    <h2>Update Existing Short Link</h2>
-    <form method="POST" action="/update">
-        <input type="text" name="short_code" placeholder="Enter short code" required>
-        <input type="url" name="new_url" placeholder="Enter new URL" required>
-        <input type="submit" value="Update">
-    </form>
+    <div class="container">
+        <h1>URL Shortener</h1>
+        <form method="POST">
+            <input type="url" name="url" placeholder="Enter URL to shorten" required>
+            <input type="submit" value="Shorten">
+        </form>
+        {% if short_url %}
+        <div class="result">
+            <p>Shortened URL: <a href="{{ short_url }}">{{ short_url }}</a></p>
+        </div>
+        {% endif %}
+        {% if error %}
+        <p class="error">Error: {{ error }}</p>
+        {% endif %}
+        <h2>Update Existing Short Link</h2>
+        <form method="POST" action="/update">
+            <input type="text" name="short_code" placeholder="Enter short code" required>
+            <input type="url" name="new_url" placeholder="Enter new URL" required>
+            <input type="submit" value="Update">
+        </form>
+    </div>
 </body>
 </html>
 '''
